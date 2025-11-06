@@ -7,36 +7,22 @@ spring:
     active: production
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
-  ai:
-    chat:
-      client:
-        enabled: true
-    # These apply when using spring-ai-azure-openai-spring-boot-starter
-    azure:
-      openai:
-        api-key: ${AZURE_OPENAI_KEY}
-        endpoint: ${AZURE_OPENAI_ENDPOINT}
-        chat:
-          options:
-            temperature: 0.7
-            deployment-name: gpt-4o
-    # These apply when using spring-ai-openai-spring-boot-starter
-    openai:
-      api-key: ${OPENAI_API_KEY:demo}
-      chat:
-        options:
-            temperature: 0.7
-            model: gpt-4o-mini
 
+  ai:
+    google:
+      ai:
+        gemini:
+          api-key: ${AIzaSyBjGchKstZCRIxAVWPQRuJdMvQ_zDJicMM}          # 这里放 Google AI Studio 的 Key（环境变量）
+          chat:
+            options:
+              model: gemini-2.5-flash         # 或 gemini-1.5-pro / gemini-2.0-flash，看你权限
+              temperature: 0.7
 
 logging:
   level:
-    org:
-      springframework:
-        ai:
-          chat:
-            client:
-              advisor: DEBUG
+    org.springframework.ai: INFO
+    org.springframework.ai.chat.client.advisor: DEBUG
+
 ---
 spring:
   config:
