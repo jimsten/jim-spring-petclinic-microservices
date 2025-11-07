@@ -1,10 +1,14 @@
 package org.springframework.samples.petclinic.genai;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.samples.petclinic.genai.dto.OwnerDetails;
 import org.springframework.samples.petclinic.genai.dto.PetDetails;
@@ -23,15 +27,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class AIDataProvider {
 
+	private static final Logger LOG = LoggerFactory.getLogger(AIDataProvider.class);
+
 	private final VectorStore vectorStore;
     private final String ownersHostname = "http://customers-service/";
 
     private final WebClient webClient;
 
-
-	public AIDataProvider(WebClient.Builder webClientBuilder, VectorStore vectorStore) {
+	/**
+	 * 构造函数：VectorStore 是可选的
+	 * 如果没有配置 EmbeddingModel，vectorStore 将为 null
+	 * 此时向量搜索功能不可用，但其他功能正常
+	 */
+	public AIDataProvider(WebClient.Builder webClientBuilder, 
+	                      @Autowired(required = false) VectorStore vectorStore) {
 		this.webClient = webClientBuilder.build();
 		this.vectorStore = vectorStore;
+		if (vectorStore == null) {
+			LOG.warn("VectorStore is not available. Vet search functionality will be limited. " +
+					"Please configure EmbeddingModel (e.g., Vertex AI embedding model) to enable full functionality.");
+		}
 	}
 
 	public OwnersResponse getAllOwners() {
@@ -44,6 +59,13 @@ public class AIDataProvider {
 	}
 
 	public VetResponse getVets(VetRequest request) throws JsonProcessingException {
+		// 如果 VectorStore 不可用，返回空列表
+		if (vectorStore == null) {
+			LOG.warn("VectorStore is not available. Cannot perform vet search. " +
+					"Please configure EmbeddingModel to enable this functionality.");
+			return new VetResponse(Collections.emptyList());
+		}
+
 		ObjectMapper objectMapper = new ObjectMapper();
 		String vetAsJson = objectMapper.writeValueAsString(request.vet());
 

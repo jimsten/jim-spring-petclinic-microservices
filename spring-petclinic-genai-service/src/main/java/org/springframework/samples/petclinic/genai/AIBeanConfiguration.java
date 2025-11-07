@@ -24,9 +24,9 @@ public class AIBeanConfiguration {
 	}
 
 	@Bean
-	VectorStore vectorStore(EmbeddingModel embeddingModel) {
-		return new SimpleVectorStore(embeddingModel);
-	}
+    VectorStore vectorStore(EmbeddingModel embeddingModel) {
+        return new SimpleVectorStore(embeddingModel);
+    }
 	
     @Bean
     @LoadBalanced
