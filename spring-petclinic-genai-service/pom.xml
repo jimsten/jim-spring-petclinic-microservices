@@ -17,16 +17,17 @@
     <properties>
         <docker.image.exposed.port>8081</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
-        <spring-ai.version>1.0.3</spring-ai.version>
+        <spring-ai.version>1.0.0-M4</spring-ai.version>
     </properties>
 
-    <dependencies>
-        <!-- Google AI (Gemini) 官方直连 starter -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-google-ai-gemini-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
+	<dependencies>
+        <!-- Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+			<!-- artifactId>spring-ai-azure-openai-spring-boot-starter</artifactId-->
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
