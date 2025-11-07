@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -28,46 +29,64 @@
 
     <properties>
         <java.version>17</java.version>
-
         <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <spring-ai.version>1.0.3</spring-ai.version>
         <chaos-monkey-spring-boot.version>3.1.0</chaos-monkey-spring-boot.version>
         <jolokia-core.version>1.7.1</jolokia-core.version>
 
         <docker.image.prefix>springcommunity</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
-        <!-- podman is also supported -->
         <container.executable>docker</container.executable>
-        <!-- By default, the OCI image is build for the linux/amd64 platform -->
-        <!-- For Apple Silicon M2 Chip you have to change it to the linux/arm64 -->
         <container.platform>linux/amd64</container.platform>
-        <!-- The -load option is a shortcut for or -output=type=docker -->
-        <!-- Could be changed by the -push option !-->
         <container.build.extraarg>--load</container.build.extraarg>
     </properties>
 
     <repositories>
         <repository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
         </repository>
     </repositories>
+
     <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
         <pluginRepository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
+            <snapshots><enabled>false</enabled></snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
         </pluginRepository>
     </pluginRepositories>
+
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -75,6 +94,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- Spring AI BOM（统一管理 spring-ai-* 版本） -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- 其余指定版本 -->
             <dependency>
                 <groupId>de.codecentric</groupId>
                 <artifactId>chaos-monkey-spring-boot</artifactId>
@@ -93,7 +123,6 @@
             <id>springboot</id>
             <activation>
                 <file>
-                    <!-- Just a way to identify a Spring Boot application -->
                     <exists>src/main/resources/application.yml</exists>
                 </file>
             </activation>
@@ -104,10 +133,7 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
-                                <goals>
-                                    <goal>build-info</goal>
-                                </goals>
+                                <goals><goal>build-info</goal></goals>
                                 <configuration>
                                     <additionalProperties>
                                         <encoding.source>${project.build.sourceEncoding}</encoding.source>
@@ -119,16 +145,11 @@
                         </executions>
                     </plugin>
 
-                    <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
                     <plugin>
                         <groupId>io.github.git-commit-id</groupId>
                         <artifactId>git-commit-id-maven-plugin</artifactId>
                         <executions>
-                            <execution>
-                                <goals>
-                                    <goal>revision</goal>
-                                </goals>
-                            </execution>
+                            <execution><goals><goal>revision</goal></goals></execution>
                         </executions>
                         <configuration>
                             <verbose>true</verbose>
@@ -139,31 +160,19 @@
                             <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                         </configuration>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-enforcer-plugin</artifactId>
                         <executions>
                             <execution>
                                 <id>enforce-java</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
+                                <goals><goal>enforce</goal></goals>
                                 <configuration>
                                     <rules>
                                         <requireJavaVersion>
-                                            <message>
-                                                🚫 Java version error: This project requires Java ${java.version} or higher.
-
-                                                Your current Java version is ${java.version}
-                                                To fix this:
-                                                1. Download and install Java 17 or higher from your preferred vendor
-                                                2. Make sure JAVA_HOME points to the new Java installation
-                                                3. Verify with 'java -version' command
-                                                4. Run the build again
-
-                                                For more information, check the project documentation.
-                                            </message>
-                                            <version>${java.version})</version>
+                                            <version>[17,)</version>
+                                            <message>🚫 Java 版本需 >= 17，请检查 JAVA_HOME 与 java -version。</message>
                                         </requireJavaVersion>
                                     </rules>
                                     <failFast>true</failFast>
@@ -188,9 +197,7 @@
                                 <execution>
                                     <id>docker-build</id>
                                     <phase>install</phase>
-                                    <goals>
-                                        <goal>exec</goal>
-                                    </goals>
+                                    <goals><goal>exec</goal></goals>
                                     <configuration>
                                         <executable>${container.executable}</executable>
                                         <workingDirectory>${docker.image.dockerfile.dir}</workingDirectory>
@@ -218,5 +225,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>
